@@ -1,0 +1,55 @@
+#!/usr/bin/bash
+
+exist=$(find ./ -name DBS -type d 2>/dev/null)
+PS3="mysql >>  "
+
+if [[ -z exist ]]
+then
+	mkdir DBS
+	cd DBS
+else
+	cd DBS 
+fi
+
+select option in "Create Database" "List Databases" "Connect To Databases" "Drop Database"
+do
+	if [[ $option == "List Databases" ]]
+	then
+		ls ./
+	elif [[ $option == "Drop Database" ]]
+	then
+		read -p "please enter Database you want to drop: " dropped
+		if [[ -d $dropped ]]
+		then
+			rm -rf $dropped
+		else
+			echo "$dropped is not existing"
+		fi
+	elif [[ $option == "Create Database" ]]
+	then
+		read -p "please enter the name of Database: " created
+		if [[ -d $created ]]
+		then
+			echo "$created already exists"
+		else
+			mkdir $created
+		fi
+	elif [[ $option == "Connect To Databases" ]]
+	then
+		read -p "please enter Database you want to connect: " connected
+		if [[ -d $connected ]]
+		then
+			cd $connected
+			select option in "Create Table" "List Tables" "Drop Table" "Insert into Table" "Select From Table" "Delete From Table" "Update Table"
+			do
+				if [[ $option == "List Tables" ]]
+				then
+					ls ./
+				fi
+			done
+		else
+			echo "$connected is not existing"
+		fi
+	fi
+done
+
