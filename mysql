@@ -46,6 +46,15 @@ do
 					then
 						ls ./
 					
+				elif [[ $option == "Drop Table" ]]
+				then
+					read -p "please enter Table you want to drop: " dropped
+					if [[ -f $dropped ]]
+					then
+					rm -rf $dropped
+					else
+					echo "$dropped is not existing"
+				fi
 				elif [[ $option == "Create Table" ]]
 					then
 					read -p "please enter the name of Table: " created
@@ -95,4 +104,3 @@ do
 		fi
 	fi
 done
-
