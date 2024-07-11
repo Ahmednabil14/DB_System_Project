@@ -3,7 +3,7 @@
 exist=$(find ./ -name DBS -type d 2>/dev/null)
 PS3="mysql >>  "
 
-if [[ -z exist ]]
+if [[ -z $exist ]]
 then
 	mkdir DBS
 	cd DBS
