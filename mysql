@@ -43,8 +43,51 @@ do
 			select option in "Create Table" "List Tables" "Drop Table" "Insert into Table" "Select From Table" "Delete From Table" "Update Table"
 			do
 				if [[ $option == "List Tables" ]]
-				then
-					ls ./
+					then
+						ls ./
+					
+				elif [[ $option == "Create Table" ]]
+					then
+					read -p "please enter the name of Table: " created
+					if [[ -f $created ]]
+					then
+					echo "$created already exists"
+					else
+						touch $created
+						read -p "please enter number of columns: " col_num
+						i=0
+						columns=""
+						while [ $i -lt $col_num ]
+						do
+							read -p "please enter column's name: " col_name
+							echo "please enter column constrains"
+							select option in "Primary Key" "not PK"
+								do
+									if [[ $option == "Primary Key" ]]
+									then
+									col_constrain="PK"
+									else
+									col_constrain=NULL
+									fi
+									break;
+								done
+							echo "please enter column data type"
+							select option in "string" "int"
+							do
+							col_type=$option
+							break;
+							done
+							if [[ $i -eq $col_num-1 ]]
+							then
+							columns="$columns$col_name $col_constrain $col_type"
+							else
+							columns+="$col_name $col_constrain $col_type:"
+							fi
+							let i++
+						done
+						echo $columns > $created
+
+					fi
 				fi
 			done
 		else
