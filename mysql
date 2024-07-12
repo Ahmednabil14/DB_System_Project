@@ -114,14 +114,13 @@ do
 						    col_type=$(echo $col | awk '{print $3}')
 						    read -p "Enter value for $col_name ($col_type): " value
 						    
-						    # Check if the primary key is null
 						    if [[ $col_constrain == "PK" ]] && [[ -z $value ]]
 						    then
 						        echo "Primary key cannot be null."
 						        continue 2
 						    fi
 						    
-						    # Capture primary key value for uniqueness check
+				
 						    if [[ $col_constrain == "PK" ]]
 						    then
 						        pk_value=$value
@@ -130,7 +129,7 @@ do
 						    values+="$value "
 						done
 						
-						# Check for primary key uniqueness
+			
 						if grep -q -E "(^| )$pk_value( |$)" "$table"
 						then
 						    echo "Primary key must be unique. Insertion failed."
