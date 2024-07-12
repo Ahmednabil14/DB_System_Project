@@ -95,7 +95,6 @@ do
 							let i++
 						done
 						echo $columns > $created
-
 					fi
 					elif [[ $option == "Insert into Table" ]]
 					then
@@ -119,8 +118,7 @@ do
 						        echo "Primary key cannot be null."
 						        continue 2
 						    fi
-						    
-				
+		
 						    if [[ $col_constrain == "PK" ]]
 						    then
 						        pk_value=$value
@@ -129,7 +127,6 @@ do
 						    values+="$value "
 						done
 						
-			
 						if grep -q -E "(^| )$pk_value( |$)" "$table"
 						then
 						    echo "Primary key must be unique. Insertion failed."
