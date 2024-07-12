@@ -97,7 +97,52 @@ do
 						echo $columns > $created
 
 					fi
-				fi
+					elif [[ $option == "Insert into Table" ]]
+					then
+					    read -p "please enter the name of the Table: " table
+					    if [[ -f $table ]]
+					    then
+						columns=$(head -n 1 "$table")
+						pk=$(echo $columns | tr ':' '\n' | grep "PK" | awk '{print $1}')
+						IFS=':' read -r -a cols_array <<< "$columns"
+						values=""
+						pk_value=""
+						for col in "${cols_array[@]}"
+						do
+						    col_name=$(echo $col | awk '{print $1}')
+						    col_constrain=$(echo $col | awk '{print $2}')
+						    col_type=$(echo $col | awk '{print $3}')
+						    read -p "Enter value for $col_name ($col_type): " value
+						    
+						    # Check if the primary key is null
+						    if [[ $col_constrain == "PK" ]] && [[ -z $value ]]
+						    then
+						        echo "Primary key cannot be null."
+						        continue 2
+						    fi
+						    
+						    # Capture primary key value for uniqueness check
+						    if [[ $col_constrain == "PK" ]]
+						    then
+						        pk_value=$value
+						    fi
+						    
+						    values+="$value "
+						done
+						
+						# Check for primary key uniqueness
+						if grep -q -E "(^| )$pk_value( |$)" "$table"
+						then
+						    echo "Primary key must be unique. Insertion failed."
+						else
+						    echo "${values% }" >> "$table"
+						    echo "Data inserted into $table."
+						fi
+					    else
+						echo "Table $table does not exist."
+					    fi
+					fi
+				
 			done
 		else
 			echo "$connected is not existing"
