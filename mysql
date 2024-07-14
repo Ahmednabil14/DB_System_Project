@@ -70,9 +70,18 @@ do
 						read -p "please enter number of columns: " col_num
 						i=0
 						columns=""
+						column_names=()
 						while [ $i -lt $col_num ]
 						do
+						
 							read -p "please enter column's name: " col_name
+							
+							while [[ " ${column_names[@]} " =~ " ${col_name} " ]]
+							do
+								echo "Table name already exists"
+								read -p "please enter column's name: " col_name
+							done
+							column_names+=("$col_name")
 							echo "please enter column constrains"
 							select option in "Primary Key" "not PK"
 								do
