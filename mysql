@@ -113,6 +113,18 @@ do
 						    col_type=$(echo $col | awk '{print $3}')
 						    read -p "Enter value for $col_name ($col_type): " value
 						    
+							if [[ ("${value:0:1}" != "\"" || "${value: -1}" != "\"") && $col_type == "string" ]] 
+							then
+								echo "Please enter string!"
+								continue 2
+							fi
+							
+							if [[ $col_type == "int" && ! $value =~ ^[0-9]+$ ]]
+							then
+								echo "plese enter int"
+								continue 2
+							fi
+
 						    if [[ $col_constrain == "PK" ]] && [[ -z $value ]]
 						    then
 						        echo "Primary key cannot be null."
