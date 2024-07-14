@@ -11,11 +11,15 @@ else
 	cd DBS 
 fi
 
-select option in "Create Database" "List Databases" "Connect To Databases" "Drop Database"
+select option in "Create Database" "List Databases" "Connect To Databases" "Drop Database" "Exit"
 do
 	if [[ $option == "List Databases" ]]
 	then
 		ls ./
+	elif [[ $option == "Exit" ]]
+	then
+		exit 0;
+		
 	elif [[ $option == "Drop Database" ]]
 	then
 		read -p "please enter Database you want to drop: " dropped
