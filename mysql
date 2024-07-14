@@ -130,109 +130,53 @@ do
 						IFS=':' read -r -a cols_array <<< "$columns"
 						values=""
 						pk_value=""
-						value=""
 						for col in "${cols_array[@]}"
 						do
 						    col_name=$(echo $col | awk '{print $1}')
 						    col_constrain=$(echo $col | awk '{print $2}')
 						    col_type=$(echo $col | awk '{print $3}')
-						    read -p "Enter value for $col_name ($col_type): " val
-						    value=$val
-							#
-							echo $value
-							while [[ ("${value:0:1}" != "\"" || "${value: -1}" != "\"") && $col_type == "string" && -n $value ]] ||
-							[[ $col_type == "int" && ! $value =~ ^[0-9]*$ ]] ||
-							(grep -q -E "(^| )$value( |$)" "$table" && [[ $col_constrain == "PK" ]]) ||
-							[[ $col_constrain == "PK" ]] && [[ -z $value ]]
-							do
-								if [[ ("${value:0:1}" != "\"" || "${value: -1}" != "\"") && $col_type == "string" && -n $value ]]
-								then
-									echo "Please enter string!"
-								elif [[ $col_type == "int" && ! $value =~ ^[0-9]*$ ]]
-								then
-									echo "Please enter integer!"
-								elif [[ $col_constrain == "PK" ]] && [[ -z $value ]]
-								then
-									echo "$col_name is primary key can't be null"
-								elif (grep -q -E "(^| )$value( |$)" "$table" && [[ $col_constrain == "PK" ]])
-								then
-									echo "Primary key value already exists!"
-								fi
-								read -p "Enter value for $col_name ($col_type): " value
-							done
+                                        while true; do
+                                        read -p "Enter value for $col_name ($col_type): " value
+                                        
+                                        if [[ $col_constrain == "PK" && -z $value ]]; then
+                                            echo "$col_name is a primary key and cannot be null"
+                                            continue
+                                        fi
+                                        
+                                        if [[ ("${value:0:1}" != "\"" || "${value: -1}" != "\"") && $col_type == "string" && -n $value ]]; then
+                                            echo "Please enter a valid string!"
+                                            continue
+                                        fi
+                                        
+                                        if [[ $col_type == "int" && ! $value =~ ^[0-9]+$ && -n $value ]]; then
+                                            echo "Please enter a valid integer!"
+                                            continue
+                                        fi
 
-							# while [[ $col_type == "int" && ! $value =~ ^[0-9]*$ ]]
-							# do
-							# 	echo "Please enter integer!"
-								# if grep -q -E "(^| )$value( |$)" "$table" && [[ $col_constrain == "PK" ]]
-								# then
-								# echo "Primary key value already exists!"
-								# fi
-							# 	read -p "Enter value for $col_name ($col_type): " val
-							# 	value=$val
-							# done
-							#
-							# echo $value
-							
-							
-							# while (grep -q -E "(^| )$value( |$)" "$table" && [[ $col_constrain == "PK" ]]) 
-							# do
-							# 	if [[ -z $value ]]
-							# 	then
-							# 		echo "$col_name is primary key can't be null"
-							# 	elif [[ ("${value:0:1}" != "\"" || "${value: -1}" != "\"") && $col_type == "string" && -n $value ]]
-							# 	then
-							# 		echo "Please enter string!"
-							# 	elif [[ $col_type == "int" && ! $value =~ ^[0-9]+$ ]]
-							# 	then
-							# 	echo "Please enter integer!"
-							# 	else
-							# 	echo "Primary key value already exists!"
-							# 	fi
-							# 	read -p "Enter value for $col_name ($col_type): " val
-							# 	value=$val
-							# done
-
-
-							# while [[ $col_constrain == "PK" ]] && [[ -z $value ]]
-							# do
-							# 	echo "$col_name is primary key can't be null"
-							# 	read -p "Enter value for $col_name ($col_type): " val
-							# 	value=$val
-							# done
-
-						    # if [[ $col_constrain == "PK" ]]
-						    # thenx
-						    #     pk_value=$value
-						    # fi
-						    # while grep -q -E "(^| )$pk_value( |$)" "$table"
-							# do
-							# 	echo "Primary key must be unique. Please enter another value."
-							# 	read -p "Enter value for $col_name ($col_type): " pk_value
-							# done
-
-						    values+="$value "
-						done
-						
-						# if grep -q -E "(^| )$pk_value( |$)" "$table"
-						# then
-						#     echo "Primary key must be unique. Insertion failed."
-						# else
-						echo "${values% }" >> "$table"
-						echo "Data inserted into $table."
-						# fi
-					    else
-						echo "Table $table does not exist."
-					    fi
-					fi
-					break
-				
-			done
-			done
-		else
-			echo "$connected is not existing"
-		fi
-	break
-	fi
-done
+										if grep -q -E "(^| )$value( |$)" "$table" && [[ $col_constrain == "PK" ]]
+                                		then
+                                    		echo "Primary key must be unique. Please enter another value"
+											continue
+										fi
+										break
+                                    done
+                                                                        
+                                    values+="$value "
+                                done
+                                
+                                echo "${values% }" >> "$table"
+                                echo "Data inserted into $table."
+                            else
+                                echo "Table $table does not exist."
+                            fi
+                        fi
+                        break
+                    done
+                done
+            else
+                echo "$connected is not existing"
+            fi
+            break
+        fi
+    done
 done
