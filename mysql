@@ -11,11 +11,14 @@ else
 	cd DBS 
 fi
 
+while true
+do
 select option in "Create Database" "List Databases" "Connect To Databases" "Drop Database" "Exit"
 do
 	if [[ $option == "List Databases" ]]
 	then
 		ls ./
+		break
 	elif [[ $option == "Exit" ]]
 	then
 		exit 0;
@@ -29,6 +32,7 @@ do
 		else
 			echo "$dropped is not existing"
 		fi
+		break
 	elif [[ $option == "Create Database" ]]
 	then
 		read -p "please enter the name of Database: " created
@@ -38,27 +42,32 @@ do
 		else
 			mkdir $created
 		fi
+		break
 	elif [[ $option == "Connect To Databases" ]]
 	then
 		read -p "please enter Database you want to connect: " connected
 		if [[ -d $connected ]]
 		then
 			cd $connected
+			while true
+			do
 			select option in "Create Table" "List Tables" "Drop Table" "Insert into Table" "Select From Table" "Delete From Table" "Update Table"
 			do
 				if [[ $option == "List Tables" ]]
 					then
 						ls ./
-					
+						break
 				elif [[ $option == "Drop Table" ]]
 				then
 					read -p "please enter Table you want to drop: " dropped
 					if [[ -f $dropped ]]
 					then
 					rm -rf $dropped
+					echo "Table $dropped has been dropped successfully "
 					else
 					echo "$dropped is not existing"
-				fi
+					fi
+					break
 				elif [[ $option == "Create Table" ]]
 					then
 					read -p "please enter the name of Table: " created
@@ -108,7 +117,9 @@ do
 							let i++
 						done
 						echo $columns > $created
+						echo "Table $created created successfully"
 					fi
+					break
 					elif [[ $option == "Insert into Table" ]]
 					then
 					    read -p "please enter the name of the Table: " table
@@ -119,54 +130,109 @@ do
 						IFS=':' read -r -a cols_array <<< "$columns"
 						values=""
 						pk_value=""
+						value=""
 						for col in "${cols_array[@]}"
 						do
 						    col_name=$(echo $col | awk '{print $1}')
 						    col_constrain=$(echo $col | awk '{print $2}')
 						    col_type=$(echo $col | awk '{print $3}')
-						    read -p "Enter value for $col_name ($col_type): " value
-						    
-							while [[ ("${value:0:1}" != "\"" || "${value: -1}" != "\"") && $col_type == "string" && -n $value ]]
+						    read -p "Enter value for $col_name ($col_type): " val
+						    value=$val
+							#
+							echo $value
+							while [[ ("${value:0:1}" != "\"" || "${value: -1}" != "\"") && $col_type == "string" && -n $value ]] ||
+							[[ $col_type == "int" && ! $value =~ ^[0-9]*$ ]] ||
+							(grep -q -E "(^| )$value( |$)" "$table" && [[ $col_constrain == "PK" ]]) ||
+							[[ $col_constrain == "PK" ]] && [[ -z $value ]]
 							do
-								echo "Please enter string!"
+								if [[ ("${value:0:1}" != "\"" || "${value: -1}" != "\"") && $col_type == "string" && -n $value ]]
+								then
+									echo "Please enter string!"
+								elif [[ $col_type == "int" && ! $value =~ ^[0-9]*$ ]]
+								then
+									echo "Please enter integer!"
+								elif [[ $col_constrain == "PK" ]] && [[ -z $value ]]
+								then
+									echo "$col_name is primary key can't be null"
+								elif (grep -q -E "(^| )$value( |$)" "$table" && [[ $col_constrain == "PK" ]])
+								then
+									echo "Primary key value already exists!"
+								fi
 								read -p "Enter value for $col_name ($col_type): " value
 							done
 
-							while [[ $col_type == "int" && ! $value =~ ^[0-9]*$ ]]
-							do
-								echo "Please enter integer!"
-								read -p "Enter value for $col_name ($col_type): " value
-							done
+							# while [[ $col_type == "int" && ! $value =~ ^[0-9]*$ ]]
+							# do
+							# 	echo "Please enter integer!"
+								# if grep -q -E "(^| )$value( |$)" "$table" && [[ $col_constrain == "PK" ]]
+								# then
+								# echo "Primary key value already exists!"
+								# fi
+							# 	read -p "Enter value for $col_name ($col_type): " val
+							# 	value=$val
+							# done
+							#
+							# echo $value
 							
-							while [[ $col_constrain == "PK" ]] && [[ -z $value ]]
-							do
-								echo "$col_name is primary key can't be null"
-								read -p "Enter value for $col_name ($col_type): " value
-							done
-		
-						    if [[ $col_constrain == "PK" ]]
-						    then
-						        pk_value=$value
-						    fi
-						    
+							
+							# while (grep -q -E "(^| )$value( |$)" "$table" && [[ $col_constrain == "PK" ]]) 
+							# do
+							# 	if [[ -z $value ]]
+							# 	then
+							# 		echo "$col_name is primary key can't be null"
+							# 	elif [[ ("${value:0:1}" != "\"" || "${value: -1}" != "\"") && $col_type == "string" && -n $value ]]
+							# 	then
+							# 		echo "Please enter string!"
+							# 	elif [[ $col_type == "int" && ! $value =~ ^[0-9]+$ ]]
+							# 	then
+							# 	echo "Please enter integer!"
+							# 	else
+							# 	echo "Primary key value already exists!"
+							# 	fi
+							# 	read -p "Enter value for $col_name ($col_type): " val
+							# 	value=$val
+							# done
+
+
+							# while [[ $col_constrain == "PK" ]] && [[ -z $value ]]
+							# do
+							# 	echo "$col_name is primary key can't be null"
+							# 	read -p "Enter value for $col_name ($col_type): " val
+							# 	value=$val
+							# done
+
+						    # if [[ $col_constrain == "PK" ]]
+						    # thenx
+						    #     pk_value=$value
+						    # fi
+						    # while grep -q -E "(^| )$pk_value( |$)" "$table"
+							# do
+							# 	echo "Primary key must be unique. Please enter another value."
+							# 	read -p "Enter value for $col_name ($col_type): " pk_value
+							# done
+
 						    values+="$value "
 						done
 						
-						if grep -q -E "(^| )$pk_value( |$)" "$table"
-						then
-						    echo "Primary key must be unique. Insertion failed."
-						else
-						    echo "${values% }" >> "$table"
-						    echo "Data inserted into $table."
-						fi
+						# if grep -q -E "(^| )$pk_value( |$)" "$table"
+						# then
+						#     echo "Primary key must be unique. Insertion failed."
+						# else
+						echo "${values% }" >> "$table"
+						echo "Data inserted into $table."
+						# fi
 					    else
 						echo "Table $table does not exist."
 					    fi
 					fi
+					break
 				
+			done
 			done
 		else
 			echo "$connected is not existing"
 		fi
+	break
 	fi
+done
 done
