@@ -1,1 +1,4 @@
-c1 PK int:c1 NULL string:c2 NULL int
+c1 PK int:c2 NULL string:c3 NULL int
+1:"kjjhfghg":99
+2:"kljhj":55
+3:"jfgdg":675
