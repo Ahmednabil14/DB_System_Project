@@ -20,11 +20,13 @@ select option in "Create Database" "List Databases" "Connect To Databases" "Drop
 do
     if [[ $option == "List Databases" ]]
     then
+        echo "Current Databases: "
         ls ./
+        echo " "
         break
     elif [[ $option == "Exit" ]]
     then
-        exit 0;
+        return;
         
     elif [[ $option == "Drop Database" ]]
     then
@@ -32,6 +34,7 @@ do
         if [[ -d $dropped ]]
         then
             rm -rf $dropped
+            echo "Database $dropped dropped successfully "
         else
             echo "${RED}$dropped is not existing.${NC}"
         fi
@@ -44,6 +47,9 @@ do
             echo "$created already exists"
         else
             mkdir $created
+            echo " "
+            echo ""Database $created created successfully""
+            echo " "
         fi
         break
     elif [[ $option == "Connect To Databases" ]]
@@ -58,7 +64,9 @@ do
             do
                 if [[ $option == "List Tables" ]]
                 then
+                    echo " "
                     ls ./
+                    echo " "
                     break
                 
                 elif [[ $option == "Delete From Table" ]]; then
