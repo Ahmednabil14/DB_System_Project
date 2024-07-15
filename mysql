@@ -190,7 +190,7 @@ do
                                 continue
                             fi
 
-                            if grep -q -E "(^| )$value:( |$)" "$table" && [[ $col_constrain == "PK" ]]
+                            if grep -q -E "^$value:" "$table" && [[ $col_constrain == "PK" ]]
                             then
                                 echo "Primary key must be unique. Please enter another value"
                                 continue

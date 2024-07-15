@@ -1,4 +1,2 @@
-c1 PK int:c2 NULL string
-1 "kjjhk"
-1 "fdg"
-"jhjdsd" 
+name PK int:age NULL int
+1:584
