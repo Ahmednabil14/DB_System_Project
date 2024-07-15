@@ -126,6 +126,7 @@ do
 
                         IFS=':' read -r -a cols_array <<< "$columns"
                         new_record=""
+                        primary_key_exists=false
 
                         for col in "${!cols_array[@]}"
                         do
@@ -134,9 +135,10 @@ do
                             read -p "Enter new value for $col_name [current value: $old_value]: " new_value
                             
                             if [[ $col_name == $pk && $new_value != $old_value ]]; then
-                                if awk -F: -v pk_value="$new_value" '$1 == pk_value' "$table"; then
+                                if grep -q -E "^$new_value:" "$table"; then
                                     echo -e "${RED}Primary key value $new_value already exists in the table. Update failed.${NC}"
-                                    continue 4
+                                    primary_key_exists=true
+                                    break
                                 fi
                             fi
 
@@ -147,6 +149,10 @@ do
                             new_record+="$new_value:"
                         done
                         
+                        if $primary_key_exists; then
+                            continue 2
+                        fi
+
                         new_record=${new_record%:}
                         awk -F: -v pk="$pk" -v pk_value="$pk_value" -v new_record="$new_record" 'BEGIN {OFS=FS} $1 == pk_value {$0 = new_record} 1' "$table" > temp && mv temp "$table"
                         echo "Record with primary key value $pk_value updated."
