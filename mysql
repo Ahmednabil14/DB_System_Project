@@ -57,6 +57,43 @@ do
                 then
                     ls ./
                     break
+                
+                elif [[ $option == "Delete From Table" ]]; then
+                read -p "Please enter the name of the Table: " table
+                if [[ -f $table ]]; then
+                    echo "Choose an option for deletion:"
+                    select del_option in "Delete Row by Column Value" "Delete Column" "Delete All Content Except Header"; do
+                        case $del_option in
+                            "Delete Row by Column Value")
+                                read -p "Please enter the value to delete: " value
+                                awk -v val="$value" 'BEGIN {FS=OFS=":"} $0 !~ val' "$table" > temp && mv temp "$table"
+                                echo "Record with value $value deleted."
+                                ;;
+                            "Delete Column")
+                                read -p "Please enter the column name to delete: " column_name
+                                col_num=$(head -n 1 "$table" | tr ':' '\n' | nl -v 0 | grep -w "$column_name" | awk '{print $1}')
+
+                                if [[ -z $col_num ]]; then
+                                    echo "Column $column_name does not exist."
+                                else
+                                    awk -v col_num=$((col_num+1)) 'BEGIN {FS=OFS=":"} { $col_num=""; $0=$0; gsub(/::/, ":"); gsub(/^:|:$/, ""); print }' "$table" > temp && mv temp "$table"
+                                    echo "Column $column_name deleted."
+                                fi
+                                ;;
+                            "Delete All Content Except Header")
+                                head -n 1 "$table" > temp && mv temp "$table"
+                                echo "All content except the header has been deleted."
+                                ;;
+                            *)
+                                echo "Invalid option."
+                                ;;
+                        esac
+                        break
+                    done
+                else
+                    echo "Table $table does not exist."
+                fi
+
                 elif [[ $option == "Drop Table" ]]
                 then
                     read -p "please enter Table you want to drop: " dropped
@@ -138,7 +175,7 @@ do
                         while true; do
                             read -p "Enter value for $col_name ($col_type): " value
                             
-                            if [[ $col_constrain == "PK" && -z $value ]]; then
+                            if [[ $col_constrain == "PK" && -z $value ]]; then36
                                 echo "$col_name is a primary key and cannot be null"
                                 continue
                             fi
@@ -153,14 +190,18 @@ do
                                 continue
                             fi
 
-                            if grep -q -E "(^| )$value( |$)" "$table" && [[ $col_constrain == "PK" ]]
+                            if grep -q -E "(^| )$value:( |$)" "$table" && [[ $col_constrain == "PK" ]]
                             then
                                 echo "Primary key must be unique. Please enter another value"
                                 continue
                             fi
                             break
                         done
-                        values+="$value "
+                        if [ -z "$values" ]; then
+                                values="$value"
+                            else
+                                values+=":$value"
+                            fi
                     done
                     echo "${values% }" >> "$table"
                     echo "Data inserted into $table."
