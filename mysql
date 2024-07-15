@@ -4,6 +4,7 @@ exist=$(find ./ -name DBS -type d 2>/dev/null)
 PS3="mysql >>  "
 
 RED=$(tput setaf 1)
+GREEN=$(tput setaf 2)
 NC=$(tput sgr0)
 
 if [[ -z $exist ]]
@@ -34,7 +35,9 @@ do
         if [[ -d $dropped ]]
         then
             rm -rf $dropped
-            echo "Database $dropped dropped successfully "
+            echo " "
+            echo "${GREEN}Database $dropped dropped successfully${NC}"
+            echo " "
         else
             echo "${RED}$dropped is not existing.${NC}"
         fi
@@ -44,11 +47,11 @@ do
         read -p "please enter the name of Database: " created
         if [[ -d $created ]]
         then
-            echo "$created already exists"
+            echo "${RED}$created already exists${NC}"
         else
             mkdir $created
             echo " "
-            echo ""Database $created created successfully""
+            echo "${GREEN}Database $created created successfully${NC}"
             echo " "
         fi
         break
@@ -64,7 +67,7 @@ do
             do
                 if [[ $option == "List Tables" ]]
                 then
-                    echo " "
+                    echo "Current tables: "
                     ls ./
                     echo " "
                     break
@@ -78,7 +81,7 @@ do
                             "Delete Row by Column Value")
                                 read -p "Please enter the value to delete: " value
                                 awk -v val="$value" 'BEGIN {FS=OFS=":"} $0 !~ val' "$table" > temp && mv temp "$table"
-                                echo "Record with value $value deleted."
+                                echo "${GREEN}Record with value $value deleted successfully${NC}"
                                 ;;
                             "Delete Column")
                                 read -p "Please enter the column name to delete: " column_name
@@ -88,15 +91,15 @@ do
                                     echo "${RED}Column $column_name does not exist.${NC}"
                                 else
                                     awk -v col_num=$((col_num+1)) 'BEGIN {FS=OFS=":"} { $col_num=""; $0=$0; gsub(/::/, ":"); gsub(/^:|:$/, ""); print }' "$table" > temp && mv temp "$table"
-                                    echo "Column $column_name deleted."
+                                    echo "${GREEN}Column $column_name deleted successfully${NC}"
                                 fi
                                 ;;
                             "Delete All Content Except Header")
                                 head -n 1 "$table" > temp && mv temp "$table"
-                                echo "All content except the header has been deleted."
+                                echo "${GREEN}All content except the header has been deleted successfully${NC}"
                                 ;;
                             *)
-                                echo "Invalid option."
+                                echo "${RED}Invalid option.${NC}"
                                 ;;
                         esac
                         break
@@ -126,7 +129,6 @@ do
 
                         IFS=':' read -r -a cols_array <<< "$columns"
                         new_record=""
-                        primary_key_exists=false
 
                         for col in "${!cols_array[@]}"
                         do
@@ -135,10 +137,9 @@ do
                             read -p "Enter new value for $col_name [current value: $old_value]: " new_value
                             
                             if [[ $col_name == $pk && $new_value != $old_value ]]; then
-                                if grep -q -E "^$new_value:" "$table"; then
+                                if awk -F: -v pk_value="$new_value" '$1 == pk_value' "$table"; then
                                     echo -e "${RED}Primary key value $new_value already exists in the table. Update failed.${NC}"
-                                    primary_key_exists=true
-                                    break
+                                    continue 4
                                 fi
                             fi
 
@@ -149,13 +150,9 @@ do
                             new_record+="$new_value:"
                         done
                         
-                        if $primary_key_exists; then
-                            continue 2
-                        fi
-
                         new_record=${new_record%:}
                         awk -F: -v pk="$pk" -v pk_value="$pk_value" -v new_record="$new_record" 'BEGIN {OFS=FS} $1 == pk_value {$0 = new_record} 1' "$table" > temp && mv temp "$table"
-                        echo "Record with primary key value $pk_value updated."
+                        echo "${GREEN}Record with primary key value $pk_value updated.${NC}"
                     else
                         echo -e "${RED}Table $table does not exist.${NC}"
                     fi
@@ -168,7 +165,7 @@ do
                     if [[ -f $dropped ]]
                     then
                     rm -rf $dropped
-                    echo "Table $dropped has been dropped successfully "
+                    echo "${GREEN}Table $dropped has been dropped successfully${NC} "
                     else
                     echo "${RED}$dropped is not existing.${NC}"
                     fi
@@ -178,7 +175,7 @@ do
                     read -p "please enter the name of Table: " created
                     if [[ -f $created ]]
                     then
-                    echo "$created already exists"
+                    echo "${RED}$created already exists${NC}"
                     else
                             touch $created
                             read -p "please enter number of columns: " col_num
@@ -222,7 +219,7 @@ do
                                 let i++
                             done
                             echo $columns > $created
-                            echo "Table $created created successfully"
+                            echo "${GREEN}Table $created created successfully${NC}"
                     fi
                     break
                 elif [[ $option == "Insert into Table" ]]
@@ -244,17 +241,17 @@ do
                             read -p "Enter value for $col_name ($col_type): " value
                             
                             if [[ $col_constrain == "PK" && -z $value ]]; then
-                                echo "$col_name is a primary key and cannot be null"
+                                echo "${RED}$col_name is a primary key and cannot be null${NC}"
                                 continue
                             fi
                             
                             if [[ ("${value:0:1}" != "\"" || "${value: -1}" != "\"") && $col_type == "string" && -n $value ]]; then
-                                echo "Please enter a valid string!"
+                                echo "${RED}Please enter a valid string!${NC}"
                                 continue
                             fi
                             
                             if [[ $col_type == "int" && ! $value =~ ^[0-9]+$ && -n $value ]]; then
-                                echo "Please enter a valid integer!"
+                                echo "${RED}Please enter a valid integer!${NC}"
                                 continue
                             fi
 
@@ -272,7 +269,7 @@ do
                             fi
                     done
                     echo "${values% }" >> "$table"
-                    echo "Data inserted into $table."
+                    echo "${GREEN}Data inserted into $table.${NC}"
                     else
                         echo "${RED}Table $table does not exist.${NC}"
                     fi
@@ -285,7 +282,7 @@ do
 					do
                         if [[ $option == "Exit" ]]
                         then
-                            continue 2
+                            continue 4
                         fi
 
 						read -p "please enter the name of the Table: " table
