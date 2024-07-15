@@ -170,16 +170,39 @@ do
                     break
                 elif [[ $option == "Select From Table" ]]
                 then
-                    select option in "Select All"
+                    while true
+                    do
+                    select option in "Select All" "Select Column" "Select By Value" "Exit"
 					do
-						read -p "please enter the name of the Table:" table
+                        if [[ $option == "Exit" ]]
+                        then
+                            continue 4
+                        fi
+
+						read -p "please enter the name of the Table: " table
+                        if [[ ! -f $table ]]
+                        then
+                            echo "$table table is not existing"
+                            break
+                        fi
+
 						if [[ $option == "Select All" ]]
 						then
 							sed '1d' $table
-							break
+                            break
+                        elif [[ $option == "Select Column" ]]
+                        then
+                            read -p "Please enter column name: " column
+                            echo "2"
+                            break
+                        elif [[ $option == "Select By Value" ]]
+                        then
+                            read -p "please enter filtering value: " value
+                            sed '1d' $table | grep "$value" 
+                            break
 						fi
 					done
-                    break
+                    done
                 fi
             done
             done
