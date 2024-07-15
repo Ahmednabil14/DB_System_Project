@@ -275,25 +275,36 @@ do
                         fi
 
 						read -p "please enter the name of the Table: " table
+                        echo "--------------------------------------------- "
                         if [[ ! -f $table ]]
                         then
                             echo "${RED}$table table is not existing.${NC}"
                             break
                         fi
+                        
 
 						if [[ $option == "Select All" ]]
 						then
+                            sed -n '1p' $table
+                            echo " "
 							sed '1d' $table
+                            echo "--------------------------------------------- "
                             break
                         elif [[ $option == "Select Column" ]]
                         then
                             read -p "Please enter column name: " column
-                            echo "2"
+                            echo "--------------------------------------------- "
+                            col_num=$(head -n 1 "$table" | tr ':' '\n' | nl -v 1 | grep -w "$column" | awk '{print $1}')
+                            cut -d ":" -f $col_num $table
+                            echo "--------------------------------------------- "
                             break
                         elif [[ $option == "Select By Value" ]]
                         then
                             read -p "please enter filtering value: " value
-                            sed '1d' $table | grep "$value" 
+                            echo "--------------------------------------------- "
+                            sed -n '1p' $table
+                            sed '1d' $table | grep "$value"
+                            echo "--------------------------------------------- "
                             break
 						fi
 					done
