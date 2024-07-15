@@ -3,6 +3,9 @@
 exist=$(find ./ -name DBS -type d 2>/dev/null)
 PS3="mysql >>  "
 
+RED=$(tput setaf 1)
+NC=$(tput sgr0)
+
 if [[ -z $exist ]]
 then
     mkdir DBS
@@ -30,7 +33,7 @@ do
         then
             rm -rf $dropped
         else
-            echo "$dropped is not existing"
+            echo "${RED}$dropped is not existing.${NC}"
         fi
         break
     elif [[ $option == "Create Database" ]]
@@ -74,7 +77,7 @@ do
                                 col_num=$(head -n 1 "$table" | tr ':' '\n' | nl -v 0 | grep -w "$column_name" | awk '{print $1}')
 
                                 if [[ -z $col_num ]]; then
-                                    echo "Column $column_name does not exist."
+                                    echo "${RED}Column $column_name does not exist.${NC}"
                                 else
                                     awk -v col_num=$((col_num+1)) 'BEGIN {FS=OFS=":"} { $col_num=""; $0=$0; gsub(/::/, ":"); gsub(/^:|:$/, ""); print }' "$table" > temp && mv temp "$table"
                                     echo "Column $column_name deleted."
@@ -91,8 +94,59 @@ do
                         break
                     done
                 else
-                    echo "Table $table does not exist."
+                    echo "${RED}Table $table does not exist.${NC}"
                 fi
+
+                elif [[ $option == "Update Table" ]]; then
+                    read -p "Please enter the name of the Table: " table
+                    if [[ -f $table ]]
+                    then
+                        columns=$(head -n 1 "$table")
+                        pk=$(echo $columns | tr ':' '\n' | grep "PK" | awk '{print $1}')
+                        if [[ -z $pk ]]; then
+                            echo -e "${RED}No primary key found in table $table. Cannot update without a primary key.${NC}"
+                            break
+                        fi
+
+                        read -p "Please enter the primary key value of the record you want to update: " pk_value
+                        record=$(awk -F: -v pk="$pk" -v pk_value="$pk_value" '$1 == pk_value' "$table")
+
+                        if [[ -z $record ]]; then
+                            echo -e "${RED}Record with primary key value $pk_value does not exist.${NC}"
+                            break
+                        fi
+
+                        IFS=':' read -r -a cols_array <<< "$columns"
+                        new_record=""
+
+                        for col in "${!cols_array[@]}"
+                        do
+                            col_name=$(echo ${cols_array[$col]} | awk '{print $1}')
+                            old_value=$(echo $record | cut -d':' -f$((col+1)))
+                            read -p "Enter new value for $col_name [current value: $old_value]: " new_value
+                            
+                            if [[ $col_name == $pk && $new_value != $old_value ]]; then
+                                if awk -F: -v pk_value="$new_value" '$1 == pk_value' "$table"; then
+                                    echo -e "${RED}Primary key value $new_value already exists in the table. Update failed.${NC}"
+                                    continue 4
+                                fi
+                            fi
+
+                            if [[ -z $new_value ]]; then
+                                new_value=$old_value
+                            fi
+
+                            new_record+="$new_value:"
+                        done
+                        
+                        new_record=${new_record%:}
+                        awk -F: -v pk="$pk" -v pk_value="$pk_value" -v new_record="$new_record" 'BEGIN {OFS=FS} $1 == pk_value {$0 = new_record} 1' "$table" > temp && mv temp "$table"
+                        echo "Record with primary key value $pk_value updated."
+                    else
+                        echo -e "${RED}Table $table does not exist.${NC}"
+                    fi
+                    break
+
 
                 elif [[ $option == "Drop Table" ]]
                 then
@@ -102,7 +156,7 @@ do
                     rm -rf $dropped
                     echo "Table $dropped has been dropped successfully "
                     else
-                    echo "$dropped is not existing"
+                    echo "${RED}$dropped is not existing.${NC}"
                     fi
                     break
                 elif [[ $option == "Create Table" ]]
@@ -124,7 +178,7 @@ do
                                 
                                 while [[ " ${column_names[@]} " =~ " ${col_name} " ]]
                                 do
-                                    echo "Table name already exists"
+                                    echo "${RED}Table name already exists.${NC}"
                                     read -p "please enter column's name: " col_name
                                 done
                                 column_names+=("$col_name")
@@ -192,7 +246,7 @@ do
 
                             if grep -q -E "^$value:" "$table" && [[ $col_constrain == "PK" ]]
                             then
-                                echo "Primary key must be unique. Please enter another value"
+                                echo "${RED}Primary key must be unique. Please enter another value.${NC}"
                                 continue
                             fi
                             break
@@ -206,7 +260,7 @@ do
                     echo "${values% }" >> "$table"
                     echo "Data inserted into $table."
                     else
-                        echo "Table $table does not exist."
+                        echo "${RED}Table $table does not exist.${NC}"
                     fi
                     break
                 elif [[ $option == "Select From Table" ]]
@@ -217,13 +271,13 @@ do
 					do
                         if [[ $option == "Exit" ]]
                         then
-                            continue 4
+                            continue 2
                         fi
 
 						read -p "please enter the name of the Table: " table
                         if [[ ! -f $table ]]
                         then
-                            echo "$table table is not existing"
+                            echo "${RED}$table table is not existing.${NC}"
                             break
                         fi
 
@@ -248,7 +302,7 @@ do
             done
             done
         else
-            echo "$connected is not existing"
+            echo "${RED}$connected is not existing.${NC}"
         fi
         break
     fi
