@@ -175,7 +175,7 @@ do
                         while true; do
                             read -p "Enter value for $col_name ($col_type): " value
                             
-                            if [[ $col_constrain == "PK" && -z $value ]]; then36
+                            if [[ $col_constrain == "PK" && -z $value ]]; then
                                 echo "$col_name is a primary key and cannot be null"
                                 continue
                             fi
@@ -190,7 +190,7 @@ do
                                 continue
                             fi
 
-                            if grep -q -E "(^| )$value:( |$)" "$table" && [[ $col_constrain == "PK" ]]
+                            if grep -q -E "^$value:" "$table" && [[ $col_constrain == "PK" ]]
                             then
                                 echo "Primary key must be unique. Please enter another value"
                                 continue
