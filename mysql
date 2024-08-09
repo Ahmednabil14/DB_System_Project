@@ -63,7 +63,7 @@ do
             cd $connected
             while true
             do
-            select option in "Create Table" "List Tables" "Drop Table" "Insert into Table" "Select From Table" "Delete From Table" "Update Table"
+            select option in "Create Table" "List Tables" "Drop Table" "Insert into Table" "Select From Table" "Delete From Table" "Update Table" "Back To Previous Menu"
             do
                 if [[ $option == "List Tables" ]]
                 then
@@ -72,21 +72,25 @@ do
                     echo " "
                     break
                 
+                elif [[ $option == "Back To Previous Menu" ]]
+                then
+                    continue 4
+        
                 elif [[ $option == "Delete From Table" ]]; then
                 read -p "Please enter the name of the Table: " table
                 if [[ -f $table ]]; then
                     while true
                     do
                     echo "Choose an option for deletion:"
-                    select del_option in "Delete Row by Column Value" "Delete Column" "Delete All Content Except Header" "Exit"; do
+                    select del_option in "Delete Row by PK" "Delete Column" "Delete All Content Except Header" "Back To Previous Menu"; do
                         case $del_option in
-                            "Delete Row by Column Value")
-                                read -p "Please enter the value to delete: " value
+                            "Delete Row by PK")
+                                read -p "Please enter raw's PK: " value
                                 awk -v val="$value" 'BEGIN {FS=OFS=":"} $0 !~ val' "$table" > temp && mv temp "$table"
                                 echo "${GREEN}Record with value $value deleted successfully${NC}"
                                 break
                                 ;;
-                            "Exit")
+                            "Back To Previous Menu")
                                 continue 4
                                 ;;
                             "Delete Column")
@@ -294,9 +298,9 @@ do
                 then
                     while true
                     do
-                    select option in "Select All" "Select Column" "Select By Value" "Exit"
+                    select option in "Select All" "Select Column" "Select By Value" "Back To Previous Menu"
 					do
-                        if [[ $option == "Exit" ]]
+                        if [[ $option == "Back To Previous Menu" ]]
                         then
                             continue 4
                         fi
